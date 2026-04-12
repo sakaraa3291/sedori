@@ -385,6 +385,46 @@
   }
   .btn-gdrive:hover { background: #4ade80; color: #0f1117; }
 
+
+  /* MOBILE FORM */
+  .input-row {
+    margin-bottom: 18px;
+  }
+  .input-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text2);
+    letter-spacing: 1px;
+    margin-bottom: 7px;
+  }
+  .input-field {
+    width: 100%;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 15px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  .input-field:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,229,160,0.15);
+  }
+  .input-lg {
+    font-size: 16px;
+    padding: 14px;
+  }
+  select.input-field {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238892b0' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
   /* OCR SECTION */
   .ocr-area {
     display: grid;
@@ -579,32 +619,155 @@
   <div class="section active" id="sec-input">
     <div class="card">
       <div class="card-title">✏️ 手入力で追加</div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>商品名</label>
-          <input type="text" id="f-name" placeholder="例：ポカリスエット 500ml×24本">
-        </div>
-        <div class="form-group">
-          <label>仕入れ先</label>
-          <input type="text" id="f-supplier" placeholder="例：Tajimaya">
-        </div>
-        <div class="form-group">
-          <label>仕入れ額（円）</label>
-          <input type="number" id="f-cost" placeholder="1500">
-        </div>
-        <div class="form-group">
-          <label>売上額（円）</label>
-          <input type="number" id="f-sales" placeholder="2200">
-        </div>
-        <div class="form-group">
-          <label>日付</label>
-          <input type="month" id="f-date">
-        </div>
-        <div class="form-group">
-          <label>　</label>
-          <button class="btn btn-accent" onclick="addRecord()">追加</button>
+
+      <!-- JANコード -->
+      <div class="input-row">
+        <div class="input-label">📦 JANコード</div>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="f-jan" placeholder="バーコードの番号を入力" inputmode="numeric" class="input-field" style="flex:1">
+          <button class="btn" style="background:#6366f1;color:#fff;padding:12px 16px;font-size:13px;white-space:nowrap" onclick="lookupJAN()">🔍 検索</button>
         </div>
       </div>
+
+      <!-- 商品名 -->
+      <div class="input-row">
+        <div class="input-label">🏷️ 商品名</div>
+        <input type="text" id="f-name" placeholder="例：ポカリスエット 500ml×24本" class="input-field input-lg">
+        <div id="jan-status" style="font-size:11px;color:#a78bfa;margin-top:5px;min-height:14px"></div>
+      </div>
+
+      <!-- 仕入れ先 -->
+      <div class="input-row">
+        <div class="input-label">🏪 仕入れ先</div>
+        <input type="text" id="f-supplier" placeholder="例：Tajimaya、ドンキ" class="input-field">
+      </div>
+
+      <!-- 金額 -->
+      <div class="input-row">
+        <div class="input-label">💴 金額</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:11px;color:var(--accent2);margin-bottom:5px;font-weight:700">仕入れ額（円）</div>
+            <input type="number" id="f-cost" placeholder="1500" class="input-field" inputmode="numeric">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--accent3);margin-bottom:5px;font-weight:700">売上額（円）</div>
+            <input type="number" id="f-sales" placeholder="2200" class="input-field" inputmode="numeric">
+          </div>
+        </div>
+      </div>
+
+      <!-- 仕入れ日 -->
+      <div class="input-row">
+        <div class="input-label">📅 仕入れ日</div>
+        <div style="display:grid;grid-template-columns:2fr 1.5fr 1.5fr;gap:8px">
+          <select id="f-year" class="input-field"></select>
+          <select id="f-month" class="input-field">
+            <option value="01">1月</option>
+            <option value="02">2月</option>
+            <option value="03">3月</option>
+            <option value="04">4月</option>
+            <option value="05">5月</option>
+            <option value="06">6月</option>
+            <option value="07">7月</option>
+            <option value="08">8月</option>
+            <option value="09">9月</option>
+            <option value="10">10月</option>
+            <option value="11">11月</option>
+            <option value="12">12月</option>
+          </select>
+          <select id="f-day" class="input-field">
+            <option value="01">1日</option>
+            <option value="02">2日</option>
+            <option value="03">3日</option>
+            <option value="04">4日</option>
+            <option value="05">5日</option>
+            <option value="06">6日</option>
+            <option value="07">7日</option>
+            <option value="08">8日</option>
+            <option value="09">9日</option>
+            <option value="10">10日</option>
+            <option value="11">11日</option>
+            <option value="12">12日</option>
+            <option value="13">13日</option>
+            <option value="14">14日</option>
+            <option value="15">15日</option>
+            <option value="16">16日</option>
+            <option value="17">17日</option>
+            <option value="18">18日</option>
+            <option value="19">19日</option>
+            <option value="20">20日</option>
+            <option value="21">21日</option>
+            <option value="22">22日</option>
+            <option value="23">23日</option>
+            <option value="24">24日</option>
+            <option value="25">25日</option>
+            <option value="26">26日</option>
+            <option value="27">27日</option>
+            <option value="28">28日</option>
+            <option value="29">29日</option>
+            <option value="30">30日</option>
+            <option value="31">31日</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 販売日 -->
+      <div class="input-row">
+        <div class="input-label">🛒 販売日</div>
+        <div style="display:grid;grid-template-columns:2fr 1.5fr 1.5fr;gap:8px">
+          <select id="f-sell-year" class="input-field"></select>
+          <select id="f-sell-month" class="input-field">
+            <option value="01">1月</option>
+            <option value="02">2月</option>
+            <option value="03">3月</option>
+            <option value="04">4月</option>
+            <option value="05">5月</option>
+            <option value="06">6月</option>
+            <option value="07">7月</option>
+            <option value="08">8月</option>
+            <option value="09">9月</option>
+            <option value="10">10月</option>
+            <option value="11">11月</option>
+            <option value="12">12月</option>
+          </select>
+          <select id="f-sell-day" class="input-field">
+            <option value="01">1日</option>
+            <option value="02">2日</option>
+            <option value="03">3日</option>
+            <option value="04">4日</option>
+            <option value="05">5日</option>
+            <option value="06">6日</option>
+            <option value="07">7日</option>
+            <option value="08">8日</option>
+            <option value="09">9日</option>
+            <option value="10">10日</option>
+            <option value="11">11日</option>
+            <option value="12">12日</option>
+            <option value="13">13日</option>
+            <option value="14">14日</option>
+            <option value="15">15日</option>
+            <option value="16">16日</option>
+            <option value="17">17日</option>
+            <option value="18">18日</option>
+            <option value="19">19日</option>
+            <option value="20">20日</option>
+            <option value="21">21日</option>
+            <option value="22">22日</option>
+            <option value="23">23日</option>
+            <option value="24">24日</option>
+            <option value="25">25日</option>
+            <option value="26">26日</option>
+            <option value="27">27日</option>
+            <option value="28">28日</option>
+            <option value="29">29日</option>
+            <option value="30">30日</option>
+            <option value="31">31日</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-accent" style="width:100%;padding:16px;font-size:16px;margin-top:8px;border-radius:12px" onclick="addRecord()">＋ 追加する</button>
     </div>
 
     <div class="card">
@@ -693,7 +856,8 @@
             <tr>
               <th>商品名</th>
               <th>仕入れ先</th>
-              <th>年月</th>
+              <th>仕入れ日</th>
+              <th>販売日</th>
               <th>仕入れ額</th>
               <th>売上額</th>
               <th>利益額</th>
@@ -740,8 +904,25 @@
 <script>
 let records = JSON.parse(localStorage.getItem('sedoriRecords') || '[]');
 
-// Init date default
-document.getElementById('f-date').value = new Date().toISOString().slice(0,7);
+// Init year/day selectors
+(function() {
+  const now = new Date();
+  ['f-year','f-sell-year'].forEach(id => {
+    const sel = document.getElementById(id);
+    for (let y = now.getFullYear(); y >= 2020; y--) {
+      const o = document.createElement('option');
+      o.value = y; o.textContent = y + '年';
+      sel.appendChild(o);
+    }
+    sel.value = now.getFullYear();
+  });
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const d = String(now.getDate()).padStart(2,'0');
+  document.getElementById('f-month').value = m;
+  document.getElementById('f-sell-month').value = m;
+  document.getElementById('f-day').value = d;
+  document.getElementById('f-sell-day').value = d;
+})();
 
 function save() {
   localStorage.setItem('sedoriRecords', JSON.stringify(records));
@@ -759,27 +940,83 @@ function calcMargin(r) {
   return ((r.sales - r.cost) / r.sales * 100);
 }
 
+async function lookupJAN() {
+  const jan = document.getElementById('f-jan').value.trim();
+  if (!jan) { alert('JANコードを入力してください'); return; }
+  const status = document.getElementById('jan-status');
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '⏳';
+  status.textContent = 'AIが商品名を検索中...';
+  status.style.color = '#a78bfa';
+  try {
+    // Try Open Food Facts first (free, no key needed)
+    let found = false;
+    try {
+      const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${jan}.json`);
+      const data = await res.json();
+      if (data.status === 1 && data.product) {
+        const p = data.product;
+        const name = p.product_name_ja || p.product_name || p.brands || '';
+        if (name) {
+          document.getElementById('f-name').value = name;
+          status.textContent = '✅ Open Food Facts から取得しました';
+          status.style.color = 'var(--accent)';
+          found = true;
+        }
+      }
+    } catch(e) {}
+
+    if (!found) {
+      // Fall back to Claude AI
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 200,
+          messages: [{ role: 'user', content: `JANコード「${jan}」の商品名を日本語で教えてください。商品名だけを返してください。わからない場合は「不明」と返してください。` }]
+        })
+      });
+      const data = await response.json();
+      const name = (data.content||[]).map(b=>b.text||'').join('').trim();
+      if (name && name !== '不明' && name.length < 100) {
+        document.getElementById('f-name').value = name;
+        status.textContent = '✅ AIが商品名を取得しました（確認してください）';
+        status.style.color = 'var(--accent)';
+      } else {
+        status.textContent = '⚠️ 商品名が見つかりません。直接入力してください';
+        status.style.color = 'var(--danger)';
+      }
+    }
+  } catch(e) {
+    status.textContent = '❌ エラー。商品名を直接入力してください';
+    status.style.color = 'var(--danger)';
+  }
+  btn.disabled = false;
+  btn.textContent = '🔍 検索';
+}
+
 function addRecord() {
   const name = document.getElementById('f-name').value.trim();
   const supplier = document.getElementById('f-supplier').value.trim();
   const cost = parseFloat(document.getElementById('f-cost').value);
   const sales = parseFloat(document.getElementById('f-sales').value);
-  const date = document.getElementById('f-date').value;
-  if (!name || isNaN(cost) || isNaN(sales) || !date) {
-    alert('商品名・仕入れ額・売上額・日付を入力してください');
+  const date = document.getElementById('f-year').value + '-' + document.getElementById('f-month').value + '-' + document.getElementById('f-day').value;
+  const sellDate = document.getElementById('f-sell-year').value + '-' + document.getElementById('f-sell-month').value + '-' + document.getElementById('f-sell-day').value;
+  if (!name || isNaN(cost) || isNaN(sales)) {
+    alert('商品名・仕入れ額・売上額を入力してください');
     return;
   }
-  records.push({ id: Date.now(), name, supplier: supplier||'不明', cost, sales, date });
+  records.push({ id: Date.now(), name, supplier: supplier||'不明', cost, sales, date, sellDate });
   save();
   document.getElementById('f-name').value = '';
   document.getElementById('f-supplier').value = '';
   document.getElementById('f-cost').value = '';
   document.getElementById('f-sales').value = '';
   updateAll();
-  // flash
-  const btn = document.querySelector('.btn-accent');
-  btn.textContent = '✓ 追加完了';
-  setTimeout(() => btn.textContent = '追加', 1200);
+  const btns = document.querySelectorAll('.btn-accent');
+  btns.forEach(b => { b.textContent = '✓ 追加完了'; setTimeout(() => b.textContent = '追加', 1200); });
 }
 
 function deleteRecord(id) {
@@ -828,7 +1065,7 @@ drop.addEventListener('drop', e => {
 });
 
 function getMonths() {
-  return [...new Set(records.map(r => r.date))].sort().reverse();
+  return [...new Set(records.map(r => (r.date||'').slice(0,7)))].filter(Boolean).sort().reverse();
 }
 function getSuppliers() {
   return [...new Set(records.map(r => r.supplier))].sort();
@@ -889,6 +1126,7 @@ function renderProducts() {
       <td>${r.name}</td>
       <td style="color:var(--text2)">${r.supplier}</td>
       <td style="color:var(--text2)">${r.date}</td>
+      <td style="color:var(--text2)">${r.sellDate||'-'}</td>
       <td>${fmt(r.cost)}</td>
       <td>${fmt(r.sales)}</td>
       <td><span class="num ${pos?'pos':'neg'}">${fmt(profit)}</span></td>
@@ -905,7 +1143,7 @@ function renderMonthly() {
     return;
   }
   const monthData = months.map(m => {
-    const recs = records.filter(r => r.date === m);
+    const recs = records.filter(r => (r.date||'').startsWith(m));
     const sales = recs.reduce((a,r) => a+r.sales, 0);
     const cost = recs.reduce((a,r) => a+r.cost, 0);
     const profit = sales - cost;
@@ -972,7 +1210,7 @@ function renderRanking() {
       <div class="rank-num ${i<3?'top'?''}">${i+1}</div>
       <div class="rank-info">
         <div class="rank-name">${r.name}</div>
-        <div class="rank-detail">${r.supplier} ／ ${r.date} ／ 仕入れ ${fmt(r.cost)}</div>
+        <div class="rank-detail">${r.supplier} ／ 仕入れ:${r.date} ／ 販売:${r.sellDate||"-"} ／ 仕入れ ${fmt(r.cost)}</div>
       </div>
       <div class="rank-profit">
         <div class="num ${pos?'pos':'neg'}" style="font-size:18px">${fmt(profit)}</div>
