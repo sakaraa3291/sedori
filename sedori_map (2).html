@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>せどりマップ</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Bebas+Neue&display=swap');
+
+  :root {
+    --bg: #0d0f14;
+    --card: #161a24;
+    --border: #252b3b;
+    --accent: #f0a500;
+    --accent2: #e05c00;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --green: #22c55e;
+    --red: #ef4444;
+    --blue: #3b82f6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    background: var(--card);
+    border-bottom: 2px solid var(--accent);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  header .subtitle {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .header-right {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+
+  /* ===== TABS ===== */
+  .tabs {
+    display: flex;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 10px 4px;
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ===== MAIN AREA ===== */
+  .main {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .panel {
+    display: none;
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  .panel.active { display: flex; flex-direction: column; }
+
+  /* ===== MAP PANEL ===== */
+  #map-panel {
+    position: relative;
+  }
+
+  #map {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .map-controls {
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    padding: 10px 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  /* ===== SEARCH PANEL ===== */
+  #search-panel {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .search-box {
+    display: flex;
+    gap: 8px;
+  }
+
+  .search-box input {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    outline: none;
+  }
+
+  .search-box input:focus { border-color: var(--accent); }
+
+  .category-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    background: transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .chip.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(240,165,0,0.1);
+  }
+
+  .results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .result-card:hover { border-color: var(--accent); }
+
+  .result-card h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
+  .result-card p { font-size: 0.7rem; color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
+
+  .result-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  /* ===== STORES PANEL ===== */
+  #stores-panel {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .store-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+  }
+
+  .store-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .store-cat-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .cat-家電 { background: rgba(59,130,246,0.2); color: #60a5fa; }
+  .cat-ドラッグ { background: rgba(34,197,94,0.2); color: #4ade80; }
+  .cat-スーパー { background: rgba(240,165,0,0.2); color: var(--accent); }
+  .cat-ホームセンター { background: rgba(224,92,0,0.2); color: #fb923c; }
+  .cat-その他 { background: rgba(107,114,128,0.2); color: #9ca3af; }
+
+  .store-name { font-size: 0.85rem; font-weight: 700; flex: 1; }
+  .store-addr { font-size: 0.68rem; color: var(--muted); margin-bottom: 6px; }
+
+  .store-memo {
+    font-size: 0.72rem;
+    color: #a0a8bc;
+    background: rgba(255,255,255,0.04);
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    white-space: pre-wrap;
+  }
+
+  .store-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  /* ===== ROUTE PANEL ===== */
+  #route-panel {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .route-map-wrap {
+    height: 240px;
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  #route-map { width: 100%; height: 100%; }
+
+  .route-stops {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .route-stop {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .stop-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .stop-info { flex: 1; }
+  .stop-name { font-size: 0.8rem; font-weight: 700; }
+  .stop-addr { font-size: 0.65rem; color: var(--muted); }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    padding: 8px 14px;
+    border-radius: 7px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    font-family: 'Noto Sans JP', sans-serif;
+    letter-spacing: 0.5px;
+    transition: opacity 0.2s, transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .btn:active { transform: scale(0.97); }
+  .btn:hover { opacity: 0.85; }
+
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-secondary { background: var(--border); color: var(--text); }
+  .btn-green { background: var(--green); color: #000; }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-blue { background: var(--blue); color: #fff; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .btn-sm { padding: 5px 10px; font-size: 0.65rem; }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    align-items: flex-end;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border-radius: 16px 16px 0 0;
+    border-top: 2px solid var(--accent);
+    padding: 20px 16px;
+    width: 100%;
+    max-height: 85dvh;
+    overflow-y: auto;
+  }
+
+  .modal h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+    color: var(--accent);
+  }
+
+  .form-group {
+    margin-bottom: 12px;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    outline: none;
+  }
+
+  .form-group textarea { resize: vertical; min-height: 80px; }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus { border-color: var(--accent); }
+
+  .form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .empty-state p { font-size: 0.78rem; line-height: 1.7; }
+
+  .section-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 0;
+  }
+
+  .api-warning {
+    background: rgba(240,165,0,0.1);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.72rem;
+    color: var(--accent);
+    line-height: 1.6;
+  }
+
+  .count-badge {
+    background: var(--accent);
+    color: #000;
+    font-size: 0.6rem;
+    font-weight: 900;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: 4px;
+  }
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>SEDORI MAP</h1>
+    <div class="subtitle">店舗管理 & ルート最適化</div>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-primary btn-sm" onclick="openAddModal()">＋ 店舗追加</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('map')">🗺️ マップ</div>
+  <div class="tab" onclick="switchTab('search')">🔍 検索</div>
+  <div class="tab" onclick="switchTab('stores')">📋 店舗リスト</div>
+  <div class="tab" onclick="switchTab('route')">🚗 ルート</div>
+</div>
+
+<div class="main">
+
+  <!-- MAP TAB -->
+  <div id="map-panel" class="panel active">
+    <div id="map"></div>
+    <div class="map-controls">
+      <button class="btn btn-primary btn-sm" onclick="centerCurrentLocation()">📍 現在地</button>
+      <button class="btn btn-secondary btn-sm" onclick="showAllStores()">全店舗表示</button>
+      <button class="btn btn-ghost btn-sm" onclick="switchTab('route')">🚗 ルート作成</button>
+    </div>
+  </div>
+
+  <!-- SEARCH TAB -->
+  <div id="search-panel" class="panel">
+    <div class="api-warning">
+      ⚠️ Google Maps APIキーを設定すると近くの店舗を自動検索できます。<br>
+      下の「手動追加」ボタンで店舗を登録することもできます。
+    </div>
+    <div class="search-box">
+      <input id="search-input" type="text" placeholder="店舗名・エリアで検索...">
+      <button class="btn btn-primary" onclick="searchNearby()">検索</button>
+    </div>
+    <div class="category-chips">
+      <div class="chip active" onclick="toggleChip(this,'すべて')">すべて</div>
+      <div class="chip" onclick="toggleChip(this,'家電')">🔌 家電量販店</div>
+      <div class="chip" onclick="toggleChip(this,'ドラッグ')">💊 ドラッグストア</div>
+      <div class="chip" onclick="toggleChip(this,'スーパー')">🛒 スーパー</div>
+      <div class="chip" onclick="toggleChip(this,'ホームセンター')">🏠 ホームセンター</div>
+    </div>
+    <div class="results-list" id="search-results">
+      <div class="empty-state">
+        <div class="icon">🔍</div>
+        <p>キーワードを入力して検索するか<br>カテゴリを選んでください</p>
+      </div>
+    </div>
+    <button class="btn btn-green" onclick="openAddModal()" style="flex-shrink:0">＋ 手動で店舗追加</button>
+  </div>
+
+  <!-- STORES TAB -->
+  <div id="stores-panel" class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="section-label">登録店舗 <span class="count-badge" id="store-count">0</span></span>
+      <button class="btn btn-primary btn-sm" onclick="openAddModal()">＋ 追加</button>
+    </div>
+    <div id="stores-list">
+      <div class="empty-state">
+        <div class="icon">🏪</div>
+        <p>まだ店舗が登録されていません<br>「＋ 追加」から登録してください</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROUTE TAB -->
+  <div id="route-panel" class="panel">
+    <div class="section-label">巡回ルート設定</div>
+    <div class="route-map-wrap">
+      <div id="route-map"></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" onclick="buildRoute()">🚗 ルート計算</button>
+      <button class="btn btn-blue btn-sm" onclick="openInGoogleMaps()">Googleマップで開く</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearRoute()">クリア</button>
+    </div>
+    <div class="section-label">巡回予定店舗 <span id="route-count" class="count-badge">0</span></div>
+    <div id="route-stops" class="route-stops">
+      <div class="empty-state">
+        <div class="icon">🗺️</div>
+        <p>「店舗リスト」からルートに追加してください</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <h2 id="modal-title">店舗を追加</h2>
+    <div class="form-group">
+      <label>店舗名 *</label>
+      <input id="f-name" type="text" placeholder="例: ヤマダ電機 ○○店">
+    </div>
+    <div class="form-group">
+      <label>カテゴリ</label>
+      <select id="f-cat">
+        <option value="家電">🔌 家電量販店</option>
+        <option value="ドラッグ">💊 ドラッグストア</option>
+        <option value="スーパー">🛒 スーパー</option>
+        <option value="ホームセンター">🏠 ホームセンター</option>
+        <option value="その他">📦 その他</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>住所</label>
+      <input id="f-addr" type="text" placeholder="例: 東京都渋谷区○○1-2-3">
+    </div>
+    <div class="form-group">
+      <label>営業時間</label>
+      <input id="f-hours" type="text" placeholder="例: 10:00〜21:00（年中無休）">
+    </div>
+    <div class="form-group">
+      <label>メモ（仕入れ実績・おすすめコーナー等）</label>
+      <textarea id="f-memo" placeholder="例: 2Fの家電コーナーが穴場。毎週火曜に値引きシール。"></textarea>
+    </div>
+    <input type="hidden" id="f-lat">
+    <input type="hidden" id="f-lng">
+    <input type="hidden" id="f-id">
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveStore()" style="flex:1">保存</button>
+      <button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEMO MODAL -->
+<div class="modal-overlay" id="memo-modal">
+  <div class="modal">
+    <h2 id="memo-store-name">メモ</h2>
+    <div class="form-group">
+      <label>メモ内容</label>
+      <textarea id="memo-text" placeholder="仕入れ実績・気づき・次回確認事項など" style="min-height:120px"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveMemo()" style="flex:1">保存</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('memo-modal').classList.remove('open')">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========================================================
+//  STATE
+// =========================================================
+let stores = JSON.parse(localStorage.getItem('sedori_stores') || '[]');
+let routeStores = [];
+let map, routeMap, directionsService, directionsRenderer;
+let markers = [];
+let editingId = null;
+let memoTargetId = null;
+let activeCategories = new Set(['すべて']);
+let geocoder;
+
+// =========================================================
+//  INIT GOOGLE MAPS
+// =========================================================
+function initMap() {
+  const center = { lat: 35.6812, lng: 139.7671 };
+
+  map = new google.maps.Map(document.getElementById('map'), {
+    center,
+    zoom: 13,
+    styles: darkMapStyle(),
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+  });
+
+  routeMap = new google.maps.Map(document.getElementById('route-map'), {
+    center,
+    zoom: 11,
+    styles: darkMapStyle(),
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+    zoomControl: false,
+  });
+
+  geocoder = new google.maps.Geocoder();
+  directionsService = new google.maps.DirectionsService();
+  directionsRenderer = new google.maps.DirectionsRenderer({
+    map: routeMap,
+    suppressMarkers: false,
+  });
+
+  // 現在地
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      map.setCenter(loc);
+      routeMap.setCenter(loc);
+      new google.maps.Marker({
+        position: loc,
+        map,
+        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: '#3b82f6', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 },
+        title: '現在地',
+        zIndex: 999,
+      });
+    });
+  }
+
+  renderAll();
+}
+
+function centerCurrentLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      map.setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      map.setZoom(14);
+    });
+  }
+}
+
+// =========================================================
+//  TABS
+// =========================================================
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const names = ['map','search','stores','route'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(name + '-panel').classList.add('active');
+
+  if (name === 'map') google.maps.event.trigger(map, 'resize');
+  if (name === 'route') google.maps.event.trigger(routeMap, 'resize');
+}
+
+// =========================================================
+//  STORE CRUD
+// =========================================================
+function saveStores() {
+  localStorage.setItem('sedori_stores', JSON.stringify(stores));
+}
+
+function openAddModal(store = null) {
+  editingId = store ? store.id : null;
+  document.getElementById('modal-title').textContent = store ? '店舗を編集' : '店舗を追加';
+  document.getElementById('f-name').value = store ? store.name : '';
+  document.getElementById('f-cat').value = store ? store.cat : '家電';
+  document.getElementById('f-addr').value = store ? store.addr : '';
+  document.getElementById('f-memo').value = store ? store.memo : '';
+  document.getElementById('f-lat').value = store ? (store.lat || '') : '';
+  document.getElementById('f-lng').value = store ? (store.lng || '') : '';
+  document.getElementById('add-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('add-modal').classList.remove('open');
+}
+
+function saveStore() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { alert('店舗名を入力してください'); return; }
+
+  const data = {
+    id: editingId || Date.now(),
+    name,
+    cat: document.getElementById('f-cat').value,
+    addr: document.getElementById('f-addr').value.trim(),
+    hours: document.getElementById('f-hours').value.trim(),
+    memo: document.getElementById('f-memo').value.trim(),
+    lat: parseFloat(document.getElementById('f-lat').value) || null,
+    lng: parseFloat(document.getElementById('f-lng').value) || null,
+    addedAt: new Date().toLocaleDateString('ja-JP'),
+  };
+
+  // ジオコーディング
+  const doSave = (d) => {
+    if (editingId) {
+      const idx = stores.findIndex(s => s.id === editingId);
+      if (idx !== -1) stores[idx] = d;
+    } else {
+      stores.push(d);
+    }
+    saveStores();
+    renderAll();
+    closeModal();
+  };
+
+  if (data.addr && !data.lat && geocoder) {
+    geocoder.geocode({ address: data.addr, region: 'jp' }, (results, status) => {
+      if (status === 'OK') {
+        data.lat = results[0].geometry.location.lat();
+        data.lng = results[0].geometry.location.lng();
+      }
+      doSave(data);
+    });
+  } else {
+    doSave(data);
+  }
+}
+
+function deleteStore(id) {
+  if (!confirm('この店舗を削除しますか？')) return;
+  stores = stores.filter(s => s.id !== id);
+  routeStores = routeStores.filter(s => s.id !== id);
+  saveStores();
+  renderAll();
+}
+
+// =========================================================
+//  MEMO
+// =========================================================
+function openMemo(id) {
+  memoTargetId = id;
+  const s = stores.find(s => s.id === id);
+  document.getElementById('memo-store-name').textContent = '📝 ' + s.name;
+  document.getElementById('memo-text').value = s.memo || '';
+  document.getElementById('memo-modal').classList.add('open');
+}
+
+function saveMemo() {
+  const s = stores.find(s => s.id === memoTargetId);
+  if (s) { s.memo = document.getElementById('memo-text').value.trim(); }
+  saveStores();
+  renderAll();
+  document.getElementById('memo-modal').classList.remove('open');
+}
+
+// =========================================================
+//  ROUTE
+// =========================================================
+function addToRoute(id) {
+  const s = stores.find(s => s.id === id);
+  if (!s) return;
+  if (routeStores.find(r => r.id === id)) {
+    alert('すでにルートに追加済みです');
+    return;
+  }
+  routeStores.push(s);
+  renderRouteStops();
+  switchTab('route');
+}
+
+function removeFromRoute(id) {
+  routeStores = routeStores.filter(s => s.id !== id);
+  renderRouteStops();
+}
+
+function clearRoute() {
+  routeStores = [];
+  directionsRenderer.setDirections({ routes: [] });
+  renderRouteStops();
+}
+
+function buildRoute() {
+  if (routeStores.length < 2) {
+    alert('2店舗以上追加してからルートを計算してください');
+    return;
+  }
+
+  const addressable = routeStores.filter(s => s.addr || (s.lat && s.lng));
+  if (addressable.length < 2) {
+    alert('住所または位置情報のある店舗が2店舗以上必要です');
+    return;
+  }
+
+  const toLatLng = (s) => {
+    if (s.lat && s.lng) return new google.maps.LatLng(s.lat, s.lng);
+    return s.addr;
+  };
+
+  const origin = toLatLng(routeStores[0]);
+  const destination = toLatLng(routeStores[routeStores.length - 1]);
+  const waypoints = routeStores.slice(1, -1).map(s => ({ location: toLatLng(s), stopover: true }));
+
+  directionsService.route({
+    origin,
+    destination,
+    waypoints,
+    travelMode: google.maps.TravelMode.DRIVING,
+    optimizeWaypoints: false,
+    region: 'jp',
+  }, (result, status) => {
+    if (status === 'OK') {
+      directionsRenderer.setDirections(result);
+    } else {
+      alert('ルート計算に失敗しました: ' + status);
+    }
+  });
+}
+
+function openInGoogleMaps() {
+  if (routeStores.length === 0) { alert('ルートに店舗を追加してください'); return; }
+  const addrs = routeStores.map(s => s.addr || s.name).map(encodeURIComponent);
+  const origin = addrs[0];
+  const dest = addrs[addrs.length - 1];
+  const wps = addrs.slice(1, -1).join('|');
+  let url = `https://www.google.com/maps/dir/${origin}`;
+  if (wps) url += `/${wps}`;
+  url += `/${dest}`;
+  window.open(url, '_blank');
+}
+
+// =========================================================
+//  SEARCH (Places API)
+// =========================================================
+let selectedCategory = 'すべて';
+const categoryKeywords = {
+  '家電': ['家電量販店','ヤマダ電機','ビックカメラ','ヨドバシ','エディオン','コジマ','ケーズデンキ'],
+  'ドラッグ': ['ドラッグストア','薬局','マツモトキヨシ','ウエルシア','ツルハ','ドラッグ'],
+  'スーパー': ['スーパー','イオン','イトーヨーカドー','ライフ','マルエツ'],
+  'ホームセンター': ['ホームセンター','カインズ','コーナン','コメリ','ナフコ'],
+};
+
+function toggleChip(el, cat) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  selectedCategory = cat;
+}
+
+function searchNearby() {
+  const keyword = document.getElementById('search-input').value.trim();
+  const query = keyword || (selectedCategory !== 'すべて' ? categoryKeywords[selectedCategory][0] : '量販店');
+
+  if (!window.google) { alert('Google Maps APIが必要です'); return; }
+
+  const service = new google.maps.places.PlacesService(map);
+  const request = {
+    query,
+    fields: ['name','formatted_address','geometry','place_id'],
+  };
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      request.location = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+      request.radius = 5000;
+      service.textSearch(request, handleSearchResults);
+    }, () => service.textSearch(request, handleSearchResults));
+  } else {
+    service.textSearch(request, handleSearchResults);
+  }
+}
+
+function handleSearchResults(results, status) {
+  const list = document.getElementById('search-results');
+  if (status !== google.maps.places.PlacesServiceStatus.OK || !results.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">😔</div><p>検索結果が見つかりませんでした</p></div>';
+    return;
+  }
+
+  list.innerHTML = results.slice(0, 15).map(r => `
+    <div class="result-card">
+      <h3>${r.name}</h3>
+      <p>${r.formatted_address || ''}</p>
+      <div class="result-actions">
+        <button class="btn btn-primary btn-sm" onclick="addFromSearch('${r.name.replace(/'/g,"\\'")}','${(r.formatted_address||'').replace(/'/g,"\\'")}',${r.geometry.location.lat()},${r.geometry.location.lng()})">＋ 登録</button>
+        <button class="btn btn-ghost btn-sm" onclick="map.setCenter({lat:${r.geometry.location.lat()},lng:${r.geometry.location.lng()}});map.setZoom(16);switchTab('map')">📍 地図</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addFromSearch(name, addr, lat, lng) {
+  document.getElementById('f-name').value = name;
+  document.getElementById('f-addr').value = addr;
+  document.getElementById('f-lat').value = lat;
+  document.getElementById('f-lng').value = lng;
+  document.getElementById('f-cat').value = detectCategory(name);
+  document.getElementById('f-memo').value = '';
+  editingId = null;
+  document.getElementById('modal-title').textContent = '店舗を追加';
+  document.getElementById('add-modal').classList.add('open');
+}
+
+function detectCategory(name) {
+  if (/ヤマダ|ビック|ヨドバシ|エディオン|コジマ|ケーズ|家電/.test(name)) return '家電';
+  if (/マツキヨ|ウエルシア|ツルハ|ドラッグ|薬|サンドラ|スギ薬/.test(name)) return 'ドラッグ';
+  if (/イオン|ヨーカドー|ライフ|マルエツ|スーパー|西友|フレスコ/.test(name)) return 'スーパー';
+  if (/カインズ|コーナン|コメリ|ナフコ|ホームセンター/.test(name)) return 'ホームセンター';
+  return 'その他';
+}
+
+// =========================================================
+//  RENDER
+// =========================================================
+function renderAll() {
+  renderMarkers();
+  renderStoresList();
+  renderRouteStops();
+  document.getElementById('store-count').textContent = stores.length;
+}
+
+function renderMarkers() {
+  markers.forEach(m => m.setMap(null));
+  markers = [];
+
+  const catColors = {
+    '家電': '#60a5fa',
+    'ドラッグ': '#4ade80',
+    'スーパー': '#f0a500',
+    'ホームセンター': '#fb923c',
+    'その他': '#9ca3af',
+  };
+
+  stores.forEach(s => {
+    if (!s.lat || !s.lng) return;
+    const marker = new google.maps.Marker({
+      position: { lat: s.lat, lng: s.lng },
+      map,
+      title: s.name,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: catColors[s.cat] || '#f0a500',
+        fillOpacity: 0.9,
+        strokeColor: '#fff',
+        strokeWeight: 2,
+      },
+    });
+
+    const iw = new google.maps.InfoWindow({
+      content: `<div style="font-family:sans-serif;padding:8px;background:#1a1f2e;color:#fff;border-radius:6px;min-width:140px;max-width:200px">
+        <b style="font-size:13px;color:#f0a500;display:block;margin-bottom:4px">${s.name}</b>
+        ${s.addr ? `<span style="font-size:11px;color:#ccc;display:block">📍 ${s.addr}</span>` : ''}
+        ${s.hours ? `<span style="font-size:11px;color:#4ade80;display:block">🕐 ${s.hours}</span>` : ''}
+        ${s.memo ? `<span style="font-size:11px;color:#aaa;display:block;margin-top:4px">${s.memo.substring(0,50)}</span>` : ''}
+      </div>`,
+    });
+
+    marker.addListener('click', () => iw.open(map, marker));
+    markers.push(marker);
+  });
+}
+
+function renderStoresList() {
+  const list = document.getElementById('stores-list');
+  if (stores.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">🏪</div><p>まだ店舗が登録されていません<br>「＋ 追加」から登録してください</p></div>';
+    return;
+  }
+
+  list.innerHTML = stores.map(s => `
+    <div class="store-card">
+      <div class="store-header">
+        <span class="store-cat-badge cat-${s.cat}">${s.cat}</span>
+        <span class="store-name">${s.name}</span>
+      </div>
+      ${s.addr ? `<div class="store-addr">📍 ${s.addr}</div>` : ''}
+      ${s.hours ? `<div class="store-addr">🕐 ${s.hours}</div>` : ''}
+      ${s.memo ? `<div class="store-memo">${s.memo}</div>` : ''}
+      <div class="store-actions">
+        <button class="btn btn-green btn-sm" onclick="addToRoute(${s.id})">🚗 ルートへ</button>
+        <button class="btn btn-blue btn-sm" onclick="openMemo(${s.id})">📝 メモ</button>
+        <button class="btn btn-secondary btn-sm" onclick="openAddModal(${JSON.stringify(s).replace(/"/g,'&quot;')})">編集</button>
+        <button class="btn btn-red btn-sm" onclick="deleteStore(${s.id})">削除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderRouteStops() {
+  const list = document.getElementById('route-stops');
+  document.getElementById('route-count').textContent = routeStores.length;
+
+  if (routeStores.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">🗺️</div><p>「店舗リスト」からルートに追加してください</p></div>';
+    return;
+  }
+
+  list.innerHTML = routeStores.map((s, i) => `
+    <div class="route-stop">
+      <div class="stop-num">${i + 1}</div>
+      <div class="stop-info">
+        <div class="stop-name">${s.name}</div>
+        <div class="stop-addr">${s.addr || '住所未登録'}</div>
+      </div>
+      <button class="btn btn-red btn-sm" onclick="removeFromRoute(${s.id})">✕</button>
+    </div>
+  `).join('');
+}
+
+function showAllStores() {
+  if (!stores.length) return;
+  const bounds = new google.maps.LatLngBounds();
+  stores.forEach(s => { if (s.lat && s.lng) bounds.extend({ lat: s.lat, lng: s.lng }); });
+  if (!bounds.isEmpty()) map.fitBounds(bounds);
+}
+
+// =========================================================
+//  DARK MAP STYLE
+// =========================================================
+function darkMapStyle() {
+  return [
+    { elementType: 'geometry', stylers: [{ color: '#1a1f2e' }] },
+    { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1f2e' }] },
+    { elementType: 'labels.text.fill', stylers: [{ color: '#8896a5' }] },
+    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2c3347' }] },
+    { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
+    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#3d4f6b' }] },
+    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0e1520' }] },
+    { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+    { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  ];
+}
+
+// =========================================================
+//  MODAL CLOSE ON OUTSIDE CLICK
+// =========================================================
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// =========================================================
+//  LOAD GOOGLE MAPS API
+//  ※ YOUR_API_KEY を実際のAPIキーに置き換えてください
+// =========================================================
+(function loadGoogleMaps() {
+  const script = document.createElement('script');
+  script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyCJ8MOy03Ti3FdiDLY01Fn7MGA14t5Mj7E&libraries=places&callback=initMap&language=ja&region=JP';
+  script.async = true;
+  script.defer = true;
+  script.onerror = () => {
+    document.getElementById('map').innerHTML = '<div style="padding:20px;color:#f0a500;font-size:0.8rem;line-height:1.8">⚠️ Google Maps APIキーが必要です。<br>コード内の YOUR_API_KEY を置き換えてください。<br><br>取得方法: Google Cloud Console → Maps JavaScript API → APIキー作成</div>';
+    document.getElementById('route-map').innerHTML = '';
+    // APIなしでも店舗リスト・メモ機能は使えます
+    window.initMap = function() {};
+    renderStoresList();
+    document.getElementById('store-count').textContent = stores.length;
+  };
+  document.head.appendChild(script);
+})();
+</script>
+</body>
+</html>
