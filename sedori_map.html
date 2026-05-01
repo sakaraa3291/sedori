@@ -957,7 +957,7 @@ function renderMarkers() {
     });
 
     const iw = new google.maps.InfoWindow({
-      content: `<div style="font-family:sans-serif;padding:4px">
+      content: `<div style="font-family:sans-serif;padding:8px;background:#1a1f2e;color:#fff;border-radius:6px">
         <b>${s.name}</b><br>
         <small>${s.addr || ''}</small><br>
         ${s.memo ? `<small style="color:#666">${s.memo.substring(0,50)}</small>` : ''}
