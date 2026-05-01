@@ -553,8 +553,12 @@
       </select>
     </div>
     <div class="form-group">
-      <label>営業時間</label>       <input id="f-hours" type="text" placeholder="例: 10:00〜21:00">     </div>     <div class="form-group">       <label>住所</label>
+      <label>住所</label>
       <input id="f-addr" type="text" placeholder="例: 東京都渋谷区○○1-2-3">
+    </div>
+    <div class="form-group">
+      <label>営業時間</label>
+      <input id="f-hours" type="text" placeholder="例: 10:00〜21:00（年中無休）">
     </div>
     <div class="form-group">
       <label>メモ（仕入れ実績・おすすめコーナー等）</label>
@@ -705,6 +709,7 @@ function saveStore() {
     name,
     cat: document.getElementById('f-cat').value,
     addr: document.getElementById('f-addr').value.trim(),
+    hours: document.getElementById('f-hours').value.trim(),
     memo: document.getElementById('f-memo').value.trim(),
     lat: parseFloat(document.getElementById('f-lat').value) || null,
     lng: parseFloat(document.getElementById('f-lng').value) || null,
@@ -891,18 +896,36 @@ function handleSearchResults(results, status) {
       <h3>${r.name}</h3>
       <p>${r.formatted_address || ''}</p>
       <div class="result-actions">
-        <button class="btn btn-primary btn-sm" onclick="addFromSearch('${r.name.replace(/'/g,"\\'")}','${(r.formatted_address||'').replace(/'/g,"\\'")}',${r.geometry.location.lat()},${r.geometry.location.lng()})">＋ 登録</button>
+        <button class="btn btn-primary btn-sm" onclick="addFromSearchWithDetails('${r.place_id}','${r.name.replace(/'/g,"\\'")}','${(r.formatted_address||'').replace(/'/g,"\\'")}',${r.geometry.location.lat()},${r.geometry.location.lng()})">＋ 登録</button>
         <button class="btn btn-ghost btn-sm" onclick="map.setCenter({lat:${r.geometry.location.lat()},lng:${r.geometry.location.lng()}});map.setZoom(16);switchTab('map')">📍 地図</button>
       </div>
     </div>
   `).join('');
 }
 
-function addFromSearch(name, addr, lat, lng) {
+function addFromSearchWithDetails(placeId, name, addr, lat, lng) {
+  const service = new google.maps.places.PlacesService(map);
+  service.getDetails({
+    placeId: placeId,
+    fields: ['opening_hours'],
+  }, (place, status) => {
+    let hours = '';
+    if (status === google.maps.places.PlacesServiceStatus.OK && place && place.opening_hours && place.opening_hours.weekday_text) {
+      const today = new Date().getDay();
+      const idx = today === 0 ? 6 : today - 1;
+      const todayText = place.opening_hours.weekday_text[idx] || '';
+      hours = todayText.replace(/^[^:]+: /, '');
+    }
+    addFromSearch(name, addr, lat, lng, hours);
+  });
+}
+
+function addFromSearch(name, addr, lat, lng, hours) {
   document.getElementById('f-name').value = name;
   document.getElementById('f-addr').value = addr;
   document.getElementById('f-lat').value = lat;
   document.getElementById('f-lng').value = lng;
+  document.getElementById('f-hours').value = hours || '';
   document.getElementById('f-cat').value = detectCategory(name);
   document.getElementById('f-memo').value = '';
   editingId = null;
@@ -957,10 +980,11 @@ function renderMarkers() {
     });
 
     const iw = new google.maps.InfoWindow({
-      content: `<div style="font-family:sans-serif;padding:8px;background:#1a1f2e;color:#fff;border-radius:6px">
-        <b>${s.name}</b><br>
-        <small>${s.addr || ''}</small><br>
-        ${s.memo ? `<small style="color:#666">${s.memo.substring(0,50)}</small>` : ''}
+      content: `<div style="font-family:sans-serif;padding:8px;background:#1a1f2e;color:#fff;border-radius:6px;min-width:140px;max-width:200px">
+        <b style="font-size:13px;color:#f0a500;display:block;margin-bottom:4px">${s.name}</b>
+        ${s.addr ? `<span style="font-size:11px;color:#ccc;display:block">📍 ${s.addr}</span>` : ''}
+        ${s.hours ? `<span style="font-size:11px;color:#4ade80;display:block">🕐 ${s.hours}</span>` : ''}
+        ${s.memo ? `<span style="font-size:11px;color:#aaa;display:block;margin-top:4px">${s.memo.substring(0,50)}</span>` : ''}
       </div>`,
     });
 
@@ -983,6 +1007,7 @@ function renderStoresList() {
         <span class="store-name">${s.name}</span>
       </div>
       ${s.addr ? `<div class="store-addr">📍 ${s.addr}</div>` : ''}
+      ${s.hours ? `<div class="store-addr">🕐 ${s.hours}</div>` : ''}
       ${s.memo ? `<div class="store-memo">${s.memo}</div>` : ''}
       <div class="store-actions">
         <button class="btn btn-green btn-sm" onclick="addToRoute(${s.id})">🚗 ルートへ</button>
